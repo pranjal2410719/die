@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { AudioLines, BellRing, Clock, Pin, PinOff, Plus, X, type LucideIcon } from "lucide-react";
+import { AudioLines, BellRing, CalendarDays, Clock, Pin, PinOff, Plus, X, type LucideIcon } from "lucide-react";
 import type { EventItem, EventType } from "../types";
 import { avatars, eventTone } from "../data";
 
@@ -109,11 +109,11 @@ export function EventsPanel({ events, floatingOn, onAdd, onRemove, onToggleRemin
         <h2 className="flex items-center gap-3 text-[30px] font-medium leading-none tracking-tight sm:text-[34px]">
           My Events
           <motion.span
-            animate={{ rotate: [0, 10, -10, 6, 0], y: [0, -3, 0] }}
-            transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 4 }}
-            className="text-[24px]"
+            animate={{ rotate: [0, 8, -8, 4, 0], y: [0, -2, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 4 }}
+            className="grid h-8 w-8 place-items-center rounded-xl bg-amber-100 text-amber-800 shadow-sm"
           >
-            🧐
+            <CalendarDays size={18} />
           </motion.span>
         </h2>
         <motion.button

@@ -37,7 +37,7 @@ export function TopBar({
   tab: TabKey;
   setTab: (t: TabKey) => void;
   unreadInbox: number;
-  toast: (text: string, emoji?: string) => void;
+  toast: (text: string, icon?: any) => void;
 }) {
   const navRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Partial<Record<TabKey, HTMLButtonElement | null>>>({});
@@ -97,10 +97,10 @@ export function TopBar({
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
-      toast("Full screen mode activated", "⛶");
+      toast("Full screen mode activated", Maximize2);
     } else {
       document.exitFullscreen().catch(() => {});
-      toast("Exited browser full screen", "↙");
+      toast("Exited browser full screen", Minimize2);
     }
   };
 
@@ -225,11 +225,11 @@ export function TopBar({
                   </div>
                 </div>
                 {[
-                  { icon: User, label: "My profile", run: () => toast("Profile opened", "👤") },
+                  { icon: User, label: "My profile", run: () => toast("Profile opened", User) },
                   { icon: isFullscreen ? Minimize2 : Maximize2, label: isFullscreen ? "Exit full screen" : "Full screen view", run: toggleFullscreen },
-                  { icon: Bell, label: "Notifications", run: () => toast("You're all caught up", "🔔") },
+                  { icon: Bell, label: "Notifications", run: () => toast("You're all caught up", Bell) },
                   { icon: SlidersHorizontal, label: "Account settings", run: () => setTab("settings") },
-                  { icon: LogOut, label: "Sign out", run: () => toast("Signed out — just kidding, this is a demo", "👋") },
+                  { icon: LogOut, label: "Sign out", run: () => toast("Signed out — just kidding, this is a demo", LogOut) },
                 ].map((it) => (
                   <button
                     key={it.label}

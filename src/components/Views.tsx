@@ -4,15 +4,26 @@ import {
   Archive,
   Bell,
   BellRing,
+  CalendarDays,
   Check,
   CheckCheck,
   Flame,
+  Mail,
+  MailCheck,
   MailOpen,
+  Minimize2,
+  PlayCircle,
   Plus,
   RotateCcw,
+  SlidersHorizontal,
+  Sparkles,
   Trash2,
+  TrendingUp,
   UserCheck,
+  UserMinus,
   UserPlus,
+  Users,
+  type LucideIcon,
 } from "lucide-react";
 import type { Course, Settings } from "../types";
 import { inboxMessages, teamMembers } from "../data";
@@ -21,12 +32,12 @@ export type InboxMsg = (typeof inboxMessages)[number];
 
 function Shell({
   title,
-  emoji,
+  icon: Icon,
   action,
   children,
 }: {
   title: string;
-  emoji: string;
+  icon?: LucideIcon;
   action?: ReactNode;
   children: ReactNode;
 }) {
@@ -35,13 +46,15 @@ function Shell({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4 lg:mb-8">
         <h1 className="flex items-center gap-3 text-[32px] font-medium leading-none tracking-tight sm:text-[40px]">
           {title}
-          <motion.span
-            animate={{ rotate: [0, -10, 10, -6, 0], scale: [1, 1.15, 1] }}
-            transition={{ duration: 1.1, repeat: Infinity, repeatDelay: 5 }}
-            className="text-[26px]"
-          >
-            {emoji}
-          </motion.span>
+          {Icon && (
+            <motion.span
+              animate={{ rotate: [0, -8, 8, -4, 0], scale: [1, 1.08, 1] }}
+              transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 5 }}
+              className="grid h-10 w-10 place-items-center rounded-2xl bg-neutral-200/70 text-neutral-800"
+            >
+              <Icon size={20} />
+            </motion.span>
+          )}
         </h1>
         {action}
       </div>
@@ -56,7 +69,7 @@ const card = "rounded-[26px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03),0_16px_
 /* Team                                                                */
 /* ------------------------------------------------------------------ */
 
-export function TeamView({ toast }: { toast: (t: string, e?: string) => void }) {
+export function TeamView({ toast }: { toast: (t: string, icon?: any) => void }) {
   const [following, setFollowing] = useState<Set<string>>(new Set(["t1"]));
   const [nudged, setNudged] = useState<Set<string>>(new Set());
   const tones = ["bg-sky", "bg-lilac", "bg-sun", "bg-mint", "bg-blush/60", "bg-neutral-200"];
@@ -66,10 +79,10 @@ export function TeamView({ toast }: { toast: (t: string, e?: string) => void }) 
       const n = new Set(s);
       if (n.has(id)) {
         n.delete(id);
-        toast(`Unfollowed ${name}`, "👋");
+        toast(`Unfollowed ${name}`, UserMinus);
       } else {
         n.add(id);
-        toast(`Following ${name}`, "✨");
+        toast(`Following ${name}`, UserPlus);
       }
       return n;
     });
@@ -80,7 +93,7 @@ export function TeamView({ toast }: { toast: (t: string, e?: string) => void }) 
   return (
     <Shell
       title="My Team"
-      emoji="👯"
+      icon={Users}
       action={
         <span className="rounded-full bg-white px-4 py-2 text-[13px] text-neutral-600 shadow-sm">
           {teamMembers.length} members · avg <b className="text-ink">{avg}%</b>
@@ -142,7 +155,7 @@ export function TeamView({ toast }: { toast: (t: string, e?: string) => void }) 
                   whileTap={{ scale: 0.85, rotate: -15 }}
                   onClick={() => {
                     setNudged((s) => new Set(s).add(m.id));
-                    toast(`Nudged ${m.name.split(" ")[0]} to keep going`, "🔔");
+                    toast(`Nudged ${m.name.split(" ")[0]} to keep going`, Bell);
                   }}
                   disabled={n}
                   aria-label={`Nudge ${m.name}`}
@@ -198,7 +211,7 @@ export function ProgressView({ courses }: { courses: Course[] }) {
   const MAX = 120;
 
   return (
-    <Shell title="My Progress" emoji="📈">
+    <Shell title="My Progress" icon={TrendingUp}>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,320px)_1fr]">
         {/* ring */}
         <div className={`${card} flex flex-col items-center p-6`}>
@@ -370,7 +383,7 @@ export function InboxView({
 }: {
   messages: InboxMsg[];
   setMessages: (fn: (m: InboxMsg[]) => InboxMsg[]) => void;
-  toast: (t: string, e?: string) => void;
+  toast: (t: string, icon?: any) => void;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [tab, setTab] = useState<"all" | "unread">("all");
@@ -383,12 +396,12 @@ export function InboxView({
   return (
     <Shell
       title="Inbox"
-      emoji="📬"
+      icon={Mail}
       action={
         <button
           onClick={() => {
             setMessages((ms) => ms.map((m) => ({ ...m, unread: false })));
-            toast("Everything marked as read", "✅");
+            toast("Everything marked as read", CheckCheck);
           }}
           disabled={unread === 0}
           className="flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[13px] font-medium shadow-sm transition hover:bg-neutral-50 active:scale-95 disabled:opacity-40"
@@ -475,7 +488,7 @@ export function InboxView({
                             onClick={() => {
                               const copy = m;
                               setMessages((ms) => ms.filter((x) => x.id !== m.id));
-                              toast("Message archived", "📦");
+                              toast("Message archived", Archive);
                               void copy;
                             }}
                             className="flex h-9 items-center gap-2 rounded-full bg-neutral-100 px-4 text-[12.5px] transition hover:bg-neutral-200 active:scale-95"
@@ -485,7 +498,7 @@ export function InboxView({
                           <button
                             onClick={() => {
                               setMessages((ms) => ms.filter((x) => x.id !== m.id));
-                              toast("Message deleted", "🗑️");
+                              toast("Message deleted", Trash2);
                             }}
                             className="flex h-9 items-center gap-2 rounded-full bg-rose-50 px-4 text-[12.5px] text-rose-600 transition hover:bg-rose-100 active:scale-95"
                           >
@@ -501,9 +514,11 @@ export function InboxView({
           })}
         </AnimatePresence>
         {shown.length === 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-[26px] border-2 border-dashed border-neutral-300 py-14 text-center">
-            <p className="text-[34px]">🎈</p>
-            <p className="mt-2 text-[18px] font-medium">Inbox zero</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center rounded-[26px] border-2 border-dashed border-neutral-300 py-14 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-sky-100 text-sky-700 shadow-sm">
+              <MailCheck size={26} />
+            </span>
+            <p className="mt-3 text-[18px] font-medium text-neutral-800">Inbox zero</p>
             <p className="text-[13px] text-neutral-500">Nothing to read right now.</p>
           </motion.div>
         )}
@@ -544,14 +559,14 @@ export function SettingsView({
   setSettings: (s: Settings) => void;
   onReset: () => void;
 }) {
-  const rows: { key: keyof Settings; title: string; desc: string; emoji: string; tone: string }[] = [
-    { key: "compact", title: "Compact cards", desc: "Hide descriptions to fit more courses on screen.", emoji: "🗜️", tone: "bg-sky" },
-    { key: "confetti", title: "Celebrate completions", desc: "Fire a burst of confetti when you finish a course.", emoji: "🎉", tone: "bg-mint" },
-    { key: "autoplay", title: "Auto-play next course", desc: "Start the next upcoming course as soon as one is finished.", emoji: "⏭️", tone: "bg-lilac" },
-    { key: "showEvents", title: "Show My Events panel", desc: "Keep your upcoming webinars, lessons and tasks in view.", emoji: "📅", tone: "bg-sun" },
+  const rows: { key: keyof Settings; title: string; desc: string; icon: LucideIcon; tone: string; iconColor: string }[] = [
+    { key: "compact", title: "Compact cards", desc: "Hide descriptions to fit more courses on screen.", icon: Minimize2, tone: "bg-sky", iconColor: "text-sky-800" },
+    { key: "confetti", title: "Celebrate completions", desc: "Fire a burst of confetti when you finish a course.", icon: Sparkles, tone: "bg-mint", iconColor: "text-emerald-800" },
+    { key: "autoplay", title: "Auto-play next course", desc: "Start the next upcoming course as soon as one is finished.", icon: PlayCircle, tone: "bg-lilac", iconColor: "text-indigo-800" },
+    { key: "showEvents", title: "Show My Events panel", desc: "Keep your upcoming webinars, lessons and tasks in view.", icon: CalendarDays, tone: "bg-sun", iconColor: "text-amber-800" },
   ];
   return (
-    <Shell title="Settings" emoji="⚙️">
+    <Shell title="Settings" icon={SlidersHorizontal}>
       <div className="flex max-w-2xl flex-col gap-3.5">
         {rows.map((r, i) => (
           <motion.div
@@ -561,7 +576,9 @@ export function SettingsView({
             transition={{ delay: i * 0.06, type: "spring", stiffness: 260, damping: 24 }}
             className={`${card} flex items-center gap-4 p-4 pr-5`}
           >
-            <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-[22px] ${r.tone}`}>{r.emoji}</span>
+            <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${r.tone} ${r.iconColor}`}>
+              <r.icon size={22} />
+            </span>
             <div className="min-w-0 flex-1">
               <p className="text-[15.5px] font-medium">{r.title}</p>
               <p className="text-[12.5px] leading-snug text-neutral-400">{r.desc}</p>

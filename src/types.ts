@@ -62,6 +62,7 @@ export interface BoardItem {
 export interface ToastMsg {
   id: number;
   text: string;
+  icon?: any;
   emoji?: string;
   actionLabel?: string;
   onAction?: () => void;

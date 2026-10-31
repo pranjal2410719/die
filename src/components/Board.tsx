@@ -1,7 +1,30 @@
 import { useRef, useState, type RefObject } from "react";
 import { AnimatePresence, motion, useDragControls } from "motion/react";
-import { GripHorizontal, X } from "lucide-react";
+import {
+  Brain,
+  Flame,
+  GripHorizontal,
+  Heart,
+  Pill,
+  Sparkles,
+  Star,
+  ThumbsUp,
+  Trophy,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import type { BoardItem } from "../types";
+
+const stickerMap: Record<string, { icon: LucideIcon; bg: string; fg: string }> = {
+  heart: { icon: Heart, bg: "from-rose-500 to-pink-600 shadow-rose-500/25", fg: "text-white" },
+  flame: { icon: Flame, bg: "from-amber-500 to-orange-600 shadow-orange-500/25", fg: "text-white" },
+  sparkles: { icon: Sparkles, bg: "from-amber-300 to-yellow-500 shadow-yellow-500/25", fg: "text-amber-950" },
+  trophy: { icon: Trophy, bg: "from-yellow-400 to-amber-600 shadow-amber-500/25", fg: "text-white" },
+  "thumbs-up": { icon: ThumbsUp, bg: "from-emerald-400 to-teal-600 shadow-emerald-500/25", fg: "text-white" },
+  star: { icon: Star, bg: "from-violet-500 to-indigo-600 shadow-violet-500/25", fg: "text-white" },
+  brain: { icon: Brain, bg: "from-purple-500 to-fuchsia-600 shadow-purple-500/25", fg: "text-white" },
+  pill: { icon: Pill, bg: "from-sky-400 to-blue-600 shadow-blue-500/25", fg: "text-white" },
+};
 
 interface Props {
   items: BoardItem[];
@@ -69,9 +92,22 @@ function Item({
       {item.kind === "emoji" && (
         <div
           onDoubleClick={onRemove}
-          className="relative cursor-grab touch-none select-none text-[58px] leading-none drop-shadow-[0_14px_14px_rgba(0,0,0,0.25)] active:cursor-grabbing"
+          className="relative cursor-grab touch-none select-none active:cursor-grabbing"
         >
-          {item.text}
+          {stickerMap[item.text] ? (
+            <div
+              className={`flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg ring-2 ring-white/60 ${stickerMap[item.text].bg}`}
+            >
+              {(() => {
+                const Icon = stickerMap[item.text].icon;
+                return <Icon size={28} className={stickerMap[item.text].fg} />;
+              })()}
+            </div>
+          ) : (
+            <div className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg ring-2 ring-white/60 text-white">
+              <Sparkles size={28} />
+            </div>
+          )}
           <div className="absolute -right-2 -top-2">{removeBtn}</div>
         </div>
       )}

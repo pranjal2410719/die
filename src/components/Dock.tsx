@@ -9,13 +9,20 @@ import {
 } from "motion/react";
 import {
   ALargeSmall,
+  Brain,
   Check,
+  Flame,
+  Heart,
   MessageCircle,
   NotebookPen,
+  Pill,
   Plus,
   Send,
-  Smile,
+  Sparkles,
+  Star,
   StickyNote,
+  ThumbsUp,
+  Trophy,
   Type,
   type LucideIcon,
 } from "lucide-react";
@@ -38,11 +45,20 @@ const tools: { key: ToolKey; label: string; icon: LucideIcon; bg: string; fg?: s
   { key: "sticky", label: "Sticky note", icon: StickyNote, bg: "#f7a9c0" },
   { key: "event", label: "New event", icon: NotebookPen, bg: "#fbe7a2" },
   { key: "chat", label: "Comments", icon: MessageCircle, bg: "#e8c8f7" },
-  { key: "emoji", label: "Reactions", icon: Smile, bg: "#bdeec1" },
+  { key: "emoji", label: "Stickers", icon: Sparkles, bg: "#bdeec1" },
   { key: "add", label: "New course", icon: Plus, bg: "#3b3b3e", fg: "#fff" },
 ];
 
-const emojis = ["👏", "❤️", "🎉", "🔥", "🤩", "👍", "🧠", "💊"];
+export const stickers: { key: string; label: string; icon: LucideIcon; bg: string; fg: string }[] = [
+  { key: "heart", label: "Heart", icon: Heart, bg: "from-rose-500 to-pink-600", fg: "text-white" },
+  { key: "flame", label: "Fire", icon: Flame, bg: "from-amber-500 to-orange-600", fg: "text-white" },
+  { key: "sparkles", label: "Sparkles", icon: Sparkles, bg: "from-amber-300 to-yellow-500", fg: "text-amber-950" },
+  { key: "trophy", label: "Trophy", icon: Trophy, bg: "from-yellow-400 to-amber-600", fg: "text-white" },
+  { key: "thumbs-up", label: "Thumbs Up", icon: ThumbsUp, bg: "from-emerald-400 to-teal-600", fg: "text-white" },
+  { key: "star", label: "Star", icon: Star, bg: "from-violet-500 to-indigo-600", fg: "text-white" },
+  { key: "brain", label: "Brain", icon: Brain, bg: "from-purple-500 to-fuchsia-600", fg: "text-white" },
+  { key: "pill", label: "Medicine", icon: Pill, bg: "from-sky-400 to-blue-600", fg: "text-white" },
+];
 
 interface Msg {
   id: number;
@@ -53,11 +69,11 @@ interface Msg {
 }
 
 const replies = [
-  "Love that idea! Want to jam on it after Pharmacology? 💊",
+  "Love that idea! Want to jam on it after Pharmacology?",
   "Good catch — I'll add it to the shared notes.",
-  "Nice progress! You're ahead of the whole group 🚀",
+  "Nice progress! You're ahead of the whole group!",
   "Haha, yes! Let's sync before the 12:30 webinar.",
-  "Pinned a sticky note on the board for that 📝",
+  "Pinned a sticky note on the board for that.",
 ];
 
 /* ------------------------------------------------------------------ */
@@ -176,7 +192,7 @@ export function Dock({ font, setFont, onText, onSticky, onEvent, onCourse, onEmo
   /* chat state lives here so it survives closing the popover */
   const [msgs, setMsgs] = useState<Msg[]>([
     { id: 1, me: false, name: "Maya", img: avatars.a3, text: "Just finished the anatomy quiz — tough one!" },
-    { id: 2, me: false, name: "Jonas", img: avatars.a1, text: "Same 😅 Pharmacology next?" },
+    { id: 2, me: false, name: "Jonas", img: avatars.a1, text: "Same! Pharmacology next?" },
   ]);
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
@@ -346,26 +362,28 @@ export function Dock({ font, setFont, onText, onSticky, onEvent, onCourse, onEmo
         {active === "emoji" && (
           <PopShell key="emoji" width={292}>
             <p className="mb-3 flex items-center gap-2 text-[15px] font-medium">
-              <Smile size={17} /> Reactions
+              <Sparkles size={17} /> Stickers & Badges
             </p>
-            <div className="grid grid-cols-4 gap-2">
-              {emojis.map((e) => (
+            <div className="grid grid-cols-4 gap-2.5">
+              {stickers.map((s) => (
                 <motion.button
-                  key={e}
-                  whileHover={{ scale: 1.18, rotate: -6 }}
-                  whileTap={{ scale: 0.8 }}
+                  key={s.key}
+                  whileHover={{ scale: 1.15, rotate: -4 }}
+                  whileTap={{ scale: 0.85 }}
                   onClick={(ev) => {
                     const r = ev.currentTarget.getBoundingClientRect();
-                    onEmoji(e, r.left + r.width / 2, r.top + r.height / 2);
+                    onEmoji(s.key, r.left + r.width / 2, r.top + r.height / 2);
                   }}
-                  aria-label={`React with ${e}`}
-                  className="grid h-[58px] place-items-center rounded-2xl bg-neutral-100 text-[28px] leading-none transition-colors hover:bg-[#d9f5db]"
+                  aria-label={`Add ${s.label} badge`}
+                  className={`flex h-[56px] items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm transition-all ${s.bg}`}
                 >
-                  {e}
+                  <s.icon size={26} className={s.fg} />
                 </motion.button>
               ))}
             </div>
-            <p className="mt-3 text-center text-[11.5px] text-neutral-400">Reactions drop onto the board — drag them anywhere.</p>
+            <p className="mt-3 text-center text-[11.5px] text-neutral-400">
+              Drop stickers onto the board — drag them anywhere.
+            </p>
           </PopShell>
         )}
       </AnimatePresence>

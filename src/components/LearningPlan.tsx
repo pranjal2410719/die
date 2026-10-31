@@ -2,13 +2,22 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlignJustify,
+  Award,
+  Bell,
+  Calendar,
+  CheckCircle2,
+  CheckCheck,
   GitBranch,
   LayoutGrid,
+  MessageSquare,
   Minus,
   Plus,
   Search,
   SearchX,
+  Timer,
+  Unlock,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import type { Course, StatFilter, ViewMode } from "../types";
 import { notifications } from "../data";
@@ -27,7 +36,7 @@ interface Props {
   playing: boolean;
   actions: CourseActions;
   onAdd: () => void;
-  toast: (text: string, emoji?: string) => void;
+  toast: (text: string, icon?: any) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -59,14 +68,14 @@ function Stat({
   tone,
   active,
   onClick,
-  emoji,
+  icon: Icon,
 }: {
   label: string;
   value: number;
   tone: "sky" | "mint" | "dash";
   active: boolean;
   onClick: () => void;
-  emoji?: string;
+  icon?: LucideIcon;
 }) {
   const toneCls =
     tone === "sky"
@@ -85,14 +94,14 @@ function Stat({
         active && tone !== "sky" ? "shadow-[0_0_0_2px_#0a0a0b,0_14px_24px_-14px_rgba(0,0,0,0.4)]" : ""
       }`}
     >
-      {emoji && (
+      {Icon && (
         <motion.span
-          className="absolute -right-1 -top-3.5 text-[22px]"
+          className="absolute -right-1 -top-3 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm"
           initial={{ rotate: 12 }}
-          whileHover={{ rotate: [12, -16, 16, -8, 12], scale: 1.25 }}
+          whileHover={{ rotate: [12, -16, 16, -8, 12], scale: 1.15 }}
           animate={active ? { y: [0, -4, 0] } : {}}
         >
-          {emoji}
+          <Icon size={13} />
         </motion.span>
       )}
       <Counter value={value} />
@@ -111,6 +120,42 @@ const viewOptions: { key: ViewMode; icon: typeof GitBranch; label: string }[] = 
   { key: "grid", icon: LayoutGrid, label: "Grid view" },
 ];
 
+function getNotifIcon(type: string) {
+  switch (type) {
+    case "completed":
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+          <CheckCircle2 size={17} />
+        </div>
+      );
+    case "webinar":
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-blue-100 text-blue-700">
+          <Calendar size={17} />
+        </div>
+      );
+    case "comment":
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-purple-100 text-purple-700">
+          <MessageSquare size={17} />
+        </div>
+      );
+    case "unlock":
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700">
+          <Unlock size={17} />
+        </div>
+      );
+    case "badge":
+    default:
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-700">
+          <Award size={17} />
+        </div>
+      );
+  }
+}
+
 function Rail({
   view,
   setView,
@@ -122,7 +167,7 @@ function Rail({
   setView: (v: ViewMode) => void;
   zoom: number;
   setZoom: (z: number) => void;
-  toast: (text: string, emoji?: string) => void;
+  toast: (text: string, icon?: any) => void;
 }) {
   const bellRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -133,7 +178,7 @@ function Rail({
   const markAll = () => {
     setRead(new Set(notifications.map((n) => n.id)));
     setUnread(0);
-    toast("All notifications marked as read", "✅");
+    toast("All notifications marked as read", CheckCheck);
   };
   const readOne = (id: string) => {
     if (read.has(id)) return;
@@ -180,12 +225,12 @@ function Rail({
           <motion.button
             ref={bellRef}
             onClick={() => setOpen((o) => !o)}
-            whileHover={{ rotate: [0, -16, 14, -10, 6, 0], transition: { duration: 0.6 } }}
+            whileHover={{ scale: 1.1, rotate: [0, -10, 10, -6, 0], transition: { duration: 0.5 } }}
             whileTap={{ scale: 0.85 }}
             aria-label={`Notifications, ${unread} unread`}
-            className="grid h-10 w-10 place-items-center text-[24px] leading-none"
+            className="grid h-10 w-10 place-items-center rounded-full text-neutral-700 transition hover:bg-neutral-200/80 hover:text-neutral-900"
           >
-            🔔
+            <Bell size={19} />
           </motion.button>
           <AnimatePresence>
             {unread > 0 && (
@@ -219,7 +264,7 @@ function Rail({
                 onClick={() => readOne(n.id)}
                 className="flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition hover:bg-neutral-100 active:scale-[0.98]"
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-neutral-100 text-[17px]">{n.emoji}</span>
+                {getNotifIcon(n.type)}
                 <span className="min-w-0 flex-1">
                   <span className={`block text-[13px] leading-snug ${isRead ? "text-neutral-500" : "font-medium text-neutral-900"}`}>{n.title}</span>
                   <span className="text-[11px] text-neutral-400">{n.time}</span>
@@ -433,7 +478,7 @@ export function LearningPlan({
         label="Completed"
         value={counts.completed}
         tone="mint"
-        emoji="🎉"
+        icon={Award}
         active={filter === "completed"}
         onClick={() => setFilter(filter === "completed" ? "all" : "completed")}
       />
@@ -491,15 +536,15 @@ export function LearningPlan({
         <h1 className="flex items-center gap-3 text-[32px] font-medium leading-none tracking-tight sm:text-[40px]">
           My Learning Plan
           <motion.button
-            onClick={() => toast("Study sprint time — 25 minutes of focus!", "⏰")}
-            animate={{ rotate: [0, -14, 12, -10, 8, 0] }}
-            transition={{ duration: 0.9, repeat: Infinity, repeatDelay: 6 }}
-            whileHover={{ scale: 1.2 }}
-            whileTap={{ scale: 0.85 }}
-            className="text-[26px] leading-none"
+            onClick={() => toast("Study sprint time — 25 minutes of focus!", Timer)}
+            animate={{ rotate: [0, -12, 12, -8, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 6 }}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid h-8 w-8 place-items-center rounded-full bg-amber-100 text-amber-800 transition hover:bg-amber-200"
             aria-label="Start a focus timer"
           >
-            ⏰
+            <Timer size={17} />
           </motion.button>
         </h1>
 

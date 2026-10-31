@@ -56,12 +56,14 @@ export function Modal({
   open,
   onClose,
   title,
+  icon: Icon,
   emoji,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  icon?: LucideIcon;
   emoji?: string;
   children: ReactNode;
 }) {
@@ -95,9 +97,16 @@ export function Modal({
             className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[28px] bg-white p-6 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.45)]"
           >
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-[24px] font-medium tracking-tight">
-                {title} {emoji}
-              </h2>
+              <div className="flex items-center gap-2.5">
+                {Icon && (
+                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-100 text-neutral-800">
+                    <Icon size={19} />
+                  </div>
+                )}
+                <h2 className="text-[22px] font-medium tracking-tight text-neutral-900">
+                  {title}
+                </h2>
+              </div>
               <button
                 onClick={onClose}
                 aria-label="Close"
@@ -141,7 +150,13 @@ export function ToastHost({
             transition={{ type: "spring", stiffness: 420, damping: 30 }}
             className="pointer-events-auto flex items-center gap-3 rounded-full bg-ink py-2.5 pl-4 pr-3 text-[13px] text-white shadow-[0_14px_30px_-10px_rgba(0,0,0,0.5)]"
           >
-            {t.emoji && <span className="text-[16px] leading-none">{t.emoji}</span>}
+            {t.icon ? (
+              <span className="grid h-5 w-5 place-items-center text-white/90">
+                <t.icon size={16} />
+              </span>
+            ) : t.emoji ? (
+              <span className="text-[16px] leading-none">{t.emoji}</span>
+            ) : null}
             <span>{t.text}</span>
             {t.actionLabel && (
               <button
@@ -169,43 +184,80 @@ export function ToastHost({
 }
 
 /* ------------------------------------------------------------------ */
-/* Emoji / confetti bursts                                             */
+/* Confetti bursts                                                     */
 /* ------------------------------------------------------------------ */
 
 export interface BurstData {
   id: number;
-  emojis: string[];
+  emojis?: string[];
   x: number;
   y: number;
 }
 
-function Particle({ emoji, i }: { emoji: string; i: number }) {
+const confettiColors = [
+  "#10b981", // emerald
+  "#6366f1", // indigo
+  "#ec4899", // pink
+  "#f59e0b", // amber
+  "#3b82f6", // blue
+  "#8b5cf6", // purple
+  "#f43f5e", // rose
+];
+
+function Particle({ i }: { i: number }) {
   const cfg = useMemo(() => {
-    const angle = (-Math.PI / 2) + (Math.random() - 0.5) * 2.1;
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
     const dist = 140 + Math.random() * 260;
+    const color = confettiColors[i % confettiColors.length];
+    const shape = i % 3; // 0: circle, 1: rect/ribbon, 2: star/diamond
+    const size = 8 + (i % 4) * 3;
     return {
       x: Math.cos(angle) * dist,
       y: Math.sin(angle) * dist,
-      r: (Math.random() - 0.5) * 240,
-      s: 0.9 + Math.random() * 0.9,
-      d: 1.1 + Math.random() * 0.9,
-      delay: i * 0.012,
+      r: (Math.random() - 0.5) * 360,
+      s: 0.8 + Math.random() * 0.8,
+      d: 1.1 + Math.random() * 0.8,
+      delay: (i % 12) * 0.015,
+      color,
+      shape,
+      size,
     };
   }, [i]);
+
   return (
     <motion.span
-      className="absolute left-0 top-0 text-[26px] leading-none"
-      initial={{ x: 0, y: 0, opacity: 1, scale: 0.3, rotate: 0 }}
+      className="pointer-events-none absolute left-0 top-0 block"
+      initial={{ x: 0, y: 0, opacity: 1, scale: 0.2, rotate: 0 }}
       animate={{
         x: cfg.x,
-        y: [0, cfg.y, cfg.y + 90],
+        y: [0, cfg.y, cfg.y + 110],
         opacity: [1, 1, 0],
         scale: cfg.s,
         rotate: cfg.r,
       }}
-      transition={{ duration: cfg.d, delay: cfg.delay, ease: "easeOut", times: [0, 0.6, 1] }}
+      transition={{ duration: cfg.d, delay: cfg.delay, ease: "easeOut", times: [0, 0.65, 1] }}
     >
-      {emoji}
+      {cfg.shape === 0 ? (
+        <span
+          className="block rounded-full shadow-sm"
+          style={{ width: cfg.size, height: cfg.size, backgroundColor: cfg.color }}
+        />
+      ) : cfg.shape === 1 ? (
+        <span
+          className="block rounded-[2px] shadow-sm"
+          style={{ width: cfg.size * 1.5, height: cfg.size * 0.7, backgroundColor: cfg.color }}
+        />
+      ) : (
+        <svg
+          width={cfg.size * 1.4}
+          height={cfg.size * 1.4}
+          viewBox="0 0 24 24"
+          fill={cfg.color}
+          className="drop-shadow-sm"
+        >
+          <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" />
+        </svg>
+      )}
     </motion.span>
   );
 }
@@ -215,8 +267,8 @@ export function BurstLayer({ bursts }: { bursts: BurstData[] }) {
     <div className="pointer-events-none fixed inset-0 z-[90] overflow-hidden">
       {bursts.map((b) => (
         <div key={b.id} className="absolute" style={{ left: b.x, top: b.y }}>
-          {Array.from({ length: 22 }).map((_, i) => (
-            <Particle key={i} i={i} emoji={b.emojis[i % b.emojis.length]} />
+          {Array.from({ length: 24 }).map((_, i) => (
+            <Particle key={i} i={i} />
           ))}
         </div>
       ))}

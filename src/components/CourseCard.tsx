@@ -5,10 +5,12 @@ import {
   Clock,
   Ellipsis,
   Lock,
+  Music,
   Pause,
   Play,
   RotateCcw,
   Trash2,
+  Volume2,
   X,
 } from "lucide-react";
 import type { Course, ViewMode } from "../types";
@@ -209,12 +211,14 @@ function PlayRing({ course, playing, onToggle, size = 88 }: { course: Course; pl
 function Notes({ playing }: { playing: boolean }) {
   return (
     <>
-      <span className={`pointer-events-none absolute right-[112px] top-5 select-none text-[24px] text-white/90 animate-note ${playing ? "" : "note-paused"}`}>♫</span>
+      <span className={`pointer-events-none absolute right-[112px] top-5 select-none text-white/90 animate-note ${playing ? "" : "note-paused"}`}>
+        <Music size={20} />
+      </span>
       <span
-        className={`pointer-events-none absolute bottom-14 right-6 select-none text-[22px] text-white/90 animate-note ${playing ? "" : "note-paused"}`}
+        className={`pointer-events-none absolute bottom-14 right-6 select-none text-white/90 animate-note ${playing ? "" : "note-paused"}`}
         style={{ animationDelay: "-1.2s" }}
       >
-        ♪
+        <Volume2 size={18} />
       </span>
     </>
   );
@@ -296,7 +300,11 @@ export function CourseCard({ course, view, compact, playing, bleed, actions }: P
           {!compact && <p className="mt-0.5 truncate text-[12px] text-neutral-400">{course.desc}</p>}
         </div>
         <div className="hidden sm:block">
-          {course.status === "completed" && <Pill tone="mint">Completed 👏</Pill>}
+          {course.status === "completed" && (
+            <Pill tone="mint">
+              <Check size={12} strokeWidth={2.5} className="mr-1 inline" /> Completed
+            </Pill>
+          )}
           {course.status === "upcoming" && (
             <Pill tone="grey">
               Upcoming <Clock size={12} />
@@ -351,7 +359,9 @@ export function CourseCard({ course, view, compact, playing, bleed, actions }: P
       )}
       <div className={`flex items-center justify-between gap-2 ${compact ? "mt-4" : "mt-5"}`}>
         {course.status === "completed" ? (
-          <Pill tone="mint">Completed 👏</Pill>
+          <Pill tone="mint">
+            <Check size={12} strokeWidth={2.5} className="mr-1 inline" /> Completed
+          </Pill>
         ) : (
           <Pill tone="grey">
             Upcoming <Clock size={12} />

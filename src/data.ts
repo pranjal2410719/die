@@ -130,12 +130,19 @@ export const defaultColorFor: Record<EventType, EventColor> = {
   task: "yellow",
 };
 
-export const notifications = [
-  { id: "n1", emoji: "🎉", title: "Anatomy and Physiology completed", time: "2m ago" },
-  { id: "n2", emoji: "📅", title: "Webinar starts tomorrow at 12:30", time: "1h ago" },
-  { id: "n3", emoji: "💬", title: "Maya commented on Pharmacology Basics", time: "3h ago" },
-  { id: "n4", emoji: "🔓", title: "New module unlocked: Clinical Communication", time: "Yesterday" },
-  { id: "n5", emoji: "🏅", title: "You earned the 7-day streak badge", time: "Yesterday" },
+export interface NotificationItem {
+  id: string;
+  type: "completed" | "webinar" | "comment" | "unlock" | "badge";
+  title: string;
+  time: string;
+}
+
+export const notifications: NotificationItem[] = [
+  { id: "n1", type: "completed", title: "Anatomy and Physiology completed", time: "2m ago" },
+  { id: "n2", type: "webinar", title: "Webinar starts tomorrow at 12:30", time: "1h ago" },
+  { id: "n3", type: "comment", title: "Maya commented on Pharmacology Basics", time: "3h ago" },
+  { id: "n4", type: "unlock", title: "New module unlocked: Clinical Communication", time: "Yesterday" },
+  { id: "n5", type: "badge", title: "You earned the 7-day streak badge", time: "Yesterday" },
 ];
 
 export const teamMembers = [

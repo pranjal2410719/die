@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { motion } from "motion/react";
-import { AudioLines, Check, Pin } from "lucide-react";
+import { AudioLines, CalendarPlus, Check, GraduationCap, Pin } from "lucide-react";
 import type { CourseIconKey, EventColor, EventType } from "../types";
 import { defaultColorFor, eventTone } from "../data";
 import { Modal, courseIcons, fieldCls } from "./shared";
@@ -120,7 +120,7 @@ export function AddCourseModal({
   onSubmit: (d: { title: string; desc: string; icon: CourseIconKey; duration: number }) => void;
 }) {
   return (
-    <Modal open={open} onClose={onClose} title="New course" emoji="🎓">
+    <Modal open={open} onClose={onClose} title="New course" icon={GraduationCap}>
       <CourseForm onSubmit={onSubmit} />
     </Modal>
   );
@@ -254,7 +254,7 @@ export function NewEventModal({
   onSubmit: (d: { type: EventType; color: EventColor; text: string; date: string; time?: string }) => void;
 }) {
   return (
-    <Modal open={open} onClose={onClose} title="New event" emoji="🗓️">
+    <Modal open={open} onClose={onClose} title="New event" icon={CalendarPlus}>
       <EventForm onSubmit={onSubmit} />
     </Modal>
   );

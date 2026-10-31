@@ -1,5 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import {
+  Bell,
+  BellOff,
+  Calendar,
+  GraduationCap,
+  Lock,
+  Pause,
+  Play,
+  RotateCcw,
+  StickyNote,
+  Trash2,
+  Trophy,
+  Type,
+} from "lucide-react";
 import type {
   BoardItem,
   Course,
@@ -93,12 +107,14 @@ export default function App() {
     },
     [dismiss],
   );
-  const toast = useCallback((text: string, emoji?: string) => pushToast({ text, emoji }), [pushToast]);
+  const toast = useCallback((text: string, icon?: any) => pushToast({ text, icon }), [pushToast]);
 
-  const fire = useCallback((emojis: string[], x?: number, y?: number) => {
+  const fire = useCallback((_emojis?: any, x?: number, y?: number) => {
     const id = ++idRef.current;
     const p = lastPtr.current;
-    setBursts((b) => [...b, { id, emojis, x: x ?? p.x, y: y ?? p.y }]);
+    const actualX = typeof _emojis === "number" ? _emojis : x ?? p.x;
+    const actualY = typeof x === "number" ? x : y ?? p.y;
+    setBursts((b) => [...b, { id, x: actualX, y: actualY }]);
     window.setTimeout(() => setBursts((b) => b.filter((z) => z.id !== id)), 2600);
   }, []);
 
@@ -134,8 +150,8 @@ export default function App() {
       } else setPlaying(false);
     }
     setCourses(next);
-    if (settings.confetti) fire(["🎉", "✨", "🎊", "💚", "⭐", "👏"]);
-    toast(`“${c.title}” completed${followUp}`, "🏆");
+    if (settings.confetti) fire();
+    toast(`“${c.title}” completed${followUp}`, Trophy);
   };
 
   // finishing the video by itself
@@ -159,7 +175,7 @@ export default function App() {
         ),
       );
       setPlaying(true);
-      toast(`Now watching “${c.title}”`, "▶️");
+      toast(`Now watching “${c.title}”`, Play);
     },
     complete,
     reset: (id) => {
@@ -167,7 +183,7 @@ export default function App() {
       if (!c) return;
       if (c.status === "progress") setPlaying(false);
       setCourses((cs) => cs.map((x) => (x.id === id ? { ...x, status: "upcoming", seconds: 0 } : x)));
-      toast(`“${c.title}” moved back to upcoming`, "↩️");
+      toast(`“${c.title}” moved back to upcoming`, RotateCcw);
     },
     remove: (id) => {
       const idx = courses.findIndex((x) => x.id === id);
@@ -177,7 +193,7 @@ export default function App() {
       setCourses((cs) => cs.filter((x) => x.id !== id));
       pushToast({
         text: `Removed “${c.title}”`,
-        emoji: "🗑️",
+        icon: Trash2,
         actionLabel: "Undo",
         onAction: () =>
           setCourses((cs) => {
@@ -190,7 +206,7 @@ export default function App() {
     togglePlay: () => {
       if (!courses.some((c) => c.status === "progress")) return;
       setPlaying((p) => {
-        toast(p ? "Paused" : "Playing", p ? "⏸️" : "▶️");
+        toast(p ? "Paused" : "Playing", p ? Pause : Play);
         return !p;
       });
     },
@@ -199,7 +215,7 @@ export default function App() {
       if (!c) return;
       pushToast({
         text: `“${c.title}” is locked until you start it`,
-        emoji: "🔒",
+        icon: Lock,
         actionLabel: "Start now",
         onAction: () => actions.start(id),
       });
@@ -214,7 +230,7 @@ export default function App() {
     setCourseModal(false);
     setTab("plan");
     setFilter("all");
-    toast(`“${d.title}” added to upcoming`, "🎓");
+    toast(`“${d.title}” added to upcoming`, GraduationCap);
   };
 
   /* ---------------------------------------------------------------- */
@@ -228,7 +244,7 @@ export default function App() {
     ]);
     setEventModal(false);
     setSettings((s) => ({ ...s, showEvents: true }));
-    toast("Event added to My Events", "🗓️");
+    toast("Event added to My Events", Calendar);
   };
 
   const removeEvent = (id: string) => {
@@ -238,7 +254,7 @@ export default function App() {
     setEvents((es) => es.filter((e) => e.id !== id));
     pushToast({
       text: "Event removed",
-      emoji: "🗑️",
+      icon: Trash2,
       actionLabel: "Undo",
       onAction: () =>
         setEvents((es) => {
@@ -253,7 +269,7 @@ export default function App() {
     const ev = events.find((e) => e.id === id);
     if (!ev) return;
     setEvents((es) => es.map((e) => (e.id === id ? { ...e, reminder: !e.reminder } : e)));
-    toast(ev.reminder ? "Reminder cancelled" : `We'll remind you at ${ev.time}`, ev.reminder ? "🔕" : "🔔");
+    toast(ev.reminder ? "Reminder cancelled" : `We'll remind you at ${ev.time}`, ev.reminder ? BellOff : Bell);
   };
 
   const toggleFloat = (id: string) => {
@@ -286,7 +302,7 @@ export default function App() {
     setView("path");
     setZoom(1.1);
     setPlaying(true);
-    toast("Demo data restored", "♻️");
+    toast("Demo data restored", RotateCcw);
   };
 
   /* ---------------------------------------------------------------- */
@@ -384,21 +400,21 @@ export default function App() {
           font={font}
           setFont={(f) => {
             setFont(f);
-            toast(`Typeface: ${fonts.find((x) => x.key === f)?.name}`, "🔤");
+            toast(`Typeface: ${fonts.find((x) => x.key === f)?.name}`, Type);
           }}
           onText={() => {
             addBoard("text");
-            toast("Text box added — drag it by its handle", "🔤");
+            toast("Text box added — drag it by its handle", Type);
           }}
           onSticky={() => {
             addBoard("sticky");
-            toast("Sticky note added to the board", "📝");
+            toast("Sticky note added to the board", StickyNote);
           }}
           onEvent={() => setEventModal(true)}
           onCourse={() => setCourseModal(true)}
-          onEmoji={(emoji, x, y) => {
-            addBoard("emoji", emoji);
-            fire([emoji, emoji, emoji, "✨"], x, y);
+          onEmoji={(stickerKey, x, y) => {
+            addBoard("emoji", stickerKey);
+            fire(x, y);
           }}
         />
       </div>
