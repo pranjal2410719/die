@@ -1,20 +1,28 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlignJustify,
   Award,
+  Calendar,
+  CheckCircle2,
+  CheckCheck,
   GitBranch,
   LayoutGrid,
+  MessageSquare,
   Minus,
   Plus,
   Search,
   SearchX,
   Timer,
+  Unlock,
   X,
   type LucideIcon,
 } from "lucide-react";
 import type { Course, StatFilter, ViewMode } from "../types";
+import { notifications } from "../data";
 import { CourseCard, type CourseActions } from "./CourseCard";
+import BellButton from "@/components/kokonutui/bell-button";
 
 interface Props {
   courses: Course[];
@@ -112,17 +120,224 @@ const viewOptions: { key: ViewMode; icon: typeof GitBranch; label: string }[] = 
   { key: "grid", icon: LayoutGrid, label: "Grid view" },
 ];
 
+function getNotifIcon(type: string) {
+  switch (type) {
+    case "completed":
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+          <CheckCircle2 size={17} />
+        </div>
+      );
+    case "webinar":
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-blue-100 text-blue-700">
+          <Calendar size={17} />
+        </div>
+      );
+    case "comment":
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-purple-100 text-purple-700">
+          <MessageSquare size={17} />
+        </div>
+      );
+    case "unlock":
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700">
+          <Unlock size={17} />
+        </div>
+      );
+    case "badge":
+    default:
+      return (
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-700">
+          <Award size={17} />
+        </div>
+      );
+  }
+}
+
+function NotificationPopover({
+  anchorRef,
+  open,
+  onClose,
+  unread,
+  read,
+  readOne,
+  markAll,
+}: {
+  anchorRef: RefObject<HTMLElement | null>;
+  open: boolean;
+  onClose: () => void;
+  unread: number;
+  read: Set<string>;
+  readOne: (id: string) => void;
+  markAll: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; bottom: number } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPos(null);
+      return;
+    }
+    const a = anchorRef.current;
+    if (!a) return;
+    const r = a.getBoundingClientRect();
+    const width = 340;
+
+    // On desktop, pop up to the right of the rail, bottom aligned with the zoom capsule
+    // On mobile, pop up near the left edge
+    const isDesktop = window.innerWidth >= 1024;
+    let left = isDesktop ? r.right + 14 : Math.max(12, Math.min(r.left, window.innerWidth - width - 12));
+    left = Math.min(Math.max(12, left), window.innerWidth - width - 12);
+
+    // Bottom aligned near the bottom of the screen / rail
+    const bottom = Math.max(16, window.innerHeight - (r.bottom + 120));
+
+    setPos({ left, bottom });
+  }, [open, anchorRef]);
+
+  useEffect(() => {
+    if (!open) return;
+    const down = (e: MouseEvent | PointerEvent) => {
+      const a = anchorRef.current;
+      const m = ref.current;
+      if (m && m.contains(e.target as Node)) return;
+      if (a && a.contains(e.target as Node)) return;
+      onClose();
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("pointerdown", down);
+    window.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointerdown", down);
+      window.removeEventListener("keydown", key);
+    };
+  }, [open, onClose, anchorRef]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {open && pos && (
+        <motion.div
+          ref={ref}
+          role="dialog"
+          aria-label="Notifications"
+          style={{
+            position: "fixed",
+            left: pos.left,
+            bottom: pos.bottom,
+            width: 340,
+            maxWidth: "calc(100vw - 32px)",
+          }}
+          initial={{ opacity: 0, scale: 0.92, y: 12, x: -8 }}
+          animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
+          exit={{ opacity: 0, scale: 0.94, y: 10 }}
+          transition={{ type: "spring", stiffness: 450, damping: 32 }}
+          className="z-[80] rounded-[26px] bg-white p-3.5 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/5"
+        >
+          <div className="flex items-center justify-between border-b border-neutral-100 px-2 pb-2 pt-1">
+            <div className="flex items-center gap-2">
+              <p className="text-[15px] font-semibold text-neutral-900">Notifications</p>
+              {unread > 0 && (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                  {unread} new
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              {unread > 0 && (
+                <button
+                  onClick={markAll}
+                  className="rounded-full px-2.5 py-1 text-[12px] font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
+                >
+                  Mark all read
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="grid h-7 w-7 place-items-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
+              >
+                <X size={15} />
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-2 flex max-h-[360px] flex-col gap-1 overflow-y-auto soft-scroll pr-0.5">
+            {notifications.map((n) => {
+              const isRead = read.has(n.id) || unread === 0;
+              return (
+                <button
+                  key={n.id}
+                  onClick={() => readOne(n.id)}
+                  className="flex w-full items-start gap-3 rounded-2xl p-2.5 text-left transition hover:bg-neutral-100/80 active:scale-[0.98]"
+                >
+                  {getNotifIcon(n.type)}
+                  <span className="min-w-0 flex-1">
+                    <span
+                      className={`block text-[13px] leading-snug ${
+                        isRead ? "text-neutral-500" : "font-medium text-neutral-900"
+                      }`}
+                    >
+                      {n.title}
+                    </span>
+                    <span className="text-[11px] text-neutral-400">{n.time}</span>
+                  </span>
+                  {!isRead && (
+                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500 shadow-sm" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {unread > 0 && (
+            <p className="px-2 pt-2 pb-0.5 text-center text-[11.5px] text-neutral-400">
+              + {Math.max(0, unread - notifications.filter((n) => !read.has(n.id)).length)} older notifications
+            </p>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
+
 function Rail({
   view,
   setView,
   zoom,
   setZoom,
+  toast,
 }: {
   view: ViewMode;
   setView: (v: ViewMode) => void;
   zoom: number;
   setZoom: (z: number) => void;
+  toast: (text: string, icon?: any) => void;
 }) {
+  const bellRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [unread, setUnread] = useState(29);
+  const [read, setRead] = useState<Set<string>>(new Set());
+  const closeBell = useCallback(() => setOpen(false), []);
+
+  const markAll = () => {
+    setRead(new Set(notifications.map((n) => n.id)));
+    setUnread(0);
+    toast("All notifications marked as read", CheckCheck);
+  };
+  const readOne = (id: string) => {
+    if (read.has(id)) return;
+    setRead(new Set(read).add(id));
+    setUnread((u) => Math.max(0, u - 1));
+  };
+
   const step = (d: number) => setZoom(Math.round(Math.min(1.3, Math.max(0.8, zoom + d)) * 10) / 10);
 
   return (
@@ -157,6 +372,32 @@ function Rail({
       </div>
 
       <div className="flex items-center gap-3 lg:flex-col">
+        {/* notifications */}
+        <div className="relative" ref={bellRef}>
+          <BellButton
+            variant="icon"
+            count={unread}
+            subscribed={open}
+            onClick={() => setOpen((o) => !o)}
+            className="h-10 w-10 border-none bg-transparent hover:bg-neutral-200/70 text-neutral-800"
+          />
+          {unread > 0 && (
+            <span className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-mint px-1.5 text-[10px] font-semibold leading-[15px] text-emerald-900 shadow-sm">
+              {unread}
+            </span>
+          )}
+        </div>
+
+        <NotificationPopover
+          anchorRef={bellRef}
+          open={open}
+          onClose={closeBell}
+          unread={unread}
+          read={read}
+          readOne={readOne}
+          markAll={markAll}
+        />
+
         {/* zoom */}
         <div className="flex items-center gap-0.5 rounded-full bg-neutral-200/60 p-1 lg:flex-col">
           <button
@@ -461,7 +702,7 @@ export function LearningPlan({
 
       {/* rail + content */}
       <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-10">
-        <Rail view={view} setView={setView} zoom={zoom} setZoom={setZoom} />
+        <Rail view={view} setView={setView} zoom={zoom} setZoom={setZoom} toast={toast} />
 
         <div className="soft-scroll relative min-w-0 flex-1 lg:-ml-8 lg:overflow-y-auto lg:pb-32 lg:pl-8 lg:pr-2 lg:pt-4 lg:-mt-4">
           <div style={{ height: innerH ? innerH * zoom : undefined }}>
