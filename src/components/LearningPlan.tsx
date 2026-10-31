@@ -3,26 +3,18 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   AlignJustify,
   Award,
-  Bell,
-  Calendar,
-  CheckCircle2,
-  CheckCheck,
   GitBranch,
   LayoutGrid,
-  MessageSquare,
   Minus,
   Plus,
   Search,
   SearchX,
   Timer,
-  Unlock,
   X,
   type LucideIcon,
 } from "lucide-react";
 import type { Course, StatFilter, ViewMode } from "../types";
-import { notifications } from "../data";
 import { CourseCard, type CourseActions } from "./CourseCard";
-import { PopMenu } from "./shared";
 
 interface Props {
   courses: Course[];
@@ -120,72 +112,17 @@ const viewOptions: { key: ViewMode; icon: typeof GitBranch; label: string }[] = 
   { key: "grid", icon: LayoutGrid, label: "Grid view" },
 ];
 
-function getNotifIcon(type: string) {
-  switch (type) {
-    case "completed":
-      return (
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
-          <CheckCircle2 size={17} />
-        </div>
-      );
-    case "webinar":
-      return (
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-blue-100 text-blue-700">
-          <Calendar size={17} />
-        </div>
-      );
-    case "comment":
-      return (
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-purple-100 text-purple-700">
-          <MessageSquare size={17} />
-        </div>
-      );
-    case "unlock":
-      return (
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700">
-          <Unlock size={17} />
-        </div>
-      );
-    case "badge":
-    default:
-      return (
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-700">
-          <Award size={17} />
-        </div>
-      );
-  }
-}
-
 function Rail({
   view,
   setView,
   zoom,
   setZoom,
-  toast,
 }: {
   view: ViewMode;
   setView: (v: ViewMode) => void;
   zoom: number;
   setZoom: (z: number) => void;
-  toast: (text: string, icon?: any) => void;
 }) {
-  const bellRef = useRef<HTMLButtonElement>(null);
-  const [open, setOpen] = useState(false);
-  const [unread, setUnread] = useState(29);
-  const [read, setRead] = useState<Set<string>>(new Set());
-  const closeBell = useCallback(() => setOpen(false), []);
-
-  const markAll = () => {
-    setRead(new Set(notifications.map((n) => n.id)));
-    setUnread(0);
-    toast("All notifications marked as read", CheckCheck);
-  };
-  const readOne = (id: string) => {
-    if (read.has(id)) return;
-    setRead(new Set(read).add(id));
-    setUnread((u) => Math.max(0, u - 1));
-  };
-
   const step = (d: number) => setZoom(Math.round(Math.min(1.3, Math.max(0.8, zoom + d)) * 10) / 10);
 
   return (
@@ -220,66 +157,6 @@ function Rail({
       </div>
 
       <div className="flex items-center gap-3 lg:flex-col">
-        {/* notifications */}
-        <div className="relative">
-          <motion.button
-            ref={bellRef}
-            onClick={() => setOpen((o) => !o)}
-            whileHover={{ scale: 1.1, rotate: [0, -10, 10, -6, 0], transition: { duration: 0.5 } }}
-            whileTap={{ scale: 0.85 }}
-            aria-label={`Notifications, ${unread} unread`}
-            className="grid h-10 w-10 place-items-center rounded-full text-neutral-700 transition hover:bg-neutral-200/80 hover:text-neutral-900"
-          >
-            <Bell size={19} />
-          </motion.button>
-          <AnimatePresence>
-            {unread > 0 && (
-              <motion.span
-                key="badge"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 rounded-full bg-mint px-1.5 text-[10px] font-semibold leading-[15px] text-emerald-900"
-              >
-                {unread}
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </div>
-        <PopMenu anchorRef={bellRef} open={open} onClose={closeBell} width={320} align="left">
-          <div className="flex items-center justify-between px-3 pb-1 pt-2">
-            <p className="text-[15px] font-medium">Notifications</p>
-            <button
-              onClick={markAll}
-              className="rounded-full px-2.5 py-1 text-[12px] text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
-            >
-              Mark all read
-            </button>
-          </div>
-          {notifications.map((n) => {
-            const isRead = read.has(n.id) || unread === 0;
-            return (
-              <button
-                key={n.id}
-                onClick={() => readOne(n.id)}
-                className="flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition hover:bg-neutral-100 active:scale-[0.98]"
-              >
-                {getNotifIcon(n.type)}
-                <span className="min-w-0 flex-1">
-                  <span className={`block text-[13px] leading-snug ${isRead ? "text-neutral-500" : "font-medium text-neutral-900"}`}>{n.title}</span>
-                  <span className="text-[11px] text-neutral-400">{n.time}</span>
-                </span>
-                {!isRead && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-400" />}
-              </button>
-            );
-          })}
-          {unread > 0 && (
-            <p className="px-3 pb-2 pt-1 text-[11.5px] text-neutral-400">
-              + {Math.max(0, unread - notifications.filter((n) => !read.has(n.id)).length)} older notifications
-            </p>
-          )}
-        </PopMenu>
-
         {/* zoom */}
         <div className="flex items-center gap-0.5 rounded-full bg-neutral-200/60 p-1 lg:flex-col">
           <button
@@ -584,7 +461,7 @@ export function LearningPlan({
 
       {/* rail + content */}
       <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-10">
-        <Rail view={view} setView={setView} zoom={zoom} setZoom={setZoom} toast={toast} />
+        <Rail view={view} setView={setView} zoom={zoom} setZoom={setZoom} />
 
         <div className="soft-scroll relative min-w-0 flex-1 lg:-ml-8 lg:overflow-y-auto lg:pb-32 lg:pl-8 lg:pr-2 lg:pt-4 lg:-mt-4">
           <div style={{ height: innerH ? innerH * zoom : undefined }}>

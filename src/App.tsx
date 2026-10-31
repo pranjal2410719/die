@@ -36,6 +36,7 @@ import { Board } from "./components/Board";
 import { InboxView, ProgressView, SettingsView, TeamView, type InboxMsg } from "./components/Views";
 import { AddCourseModal, NewEventModal } from "./components/Modals";
 import { BurstLayer, ToastHost, type BurstData } from "./components/shared";
+import { NotificationsBottomRight } from "./components/NotificationsBottomRight";
 import type { CourseActions } from "./components/CourseCard";
 
 const stickyColors = ["#ffd3e1", "#fff0a6", "#cdeeff", "#d3f6d6", "#ead6fc"];
@@ -72,6 +73,7 @@ export default function App() {
   const [font, setFont] = useState<FontKey>("outfit");
   const [courseModal, setCourseModal] = useState(false);
   const [eventModal, setEventModal] = useState(false);
+  const [unreadNotifs, setUnreadNotifs] = useState(29);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const [bursts, setBursts] = useState<BurstData[]>([]);
 
@@ -302,6 +304,7 @@ export default function App() {
     setView("path");
     setZoom(1.1);
     setPlaying(true);
+    setUnreadNotifs(29);
     toast("Demo data restored", RotateCcw);
   };
 
@@ -423,6 +426,11 @@ export default function App() {
       <NewEventModal open={eventModal} onClose={() => setEventModal(false)} onSubmit={addEvent} />
       <BurstLayer bursts={bursts} />
       <ToastHost toasts={toasts} dismiss={dismiss} />
+      <NotificationsBottomRight
+        unread={unreadNotifs}
+        setUnread={setUnreadNotifs}
+        toast={toast}
+      />
     </div>
   );
 }
