@@ -141,7 +141,7 @@ function Rail({
     setUnread((u) => Math.max(0, u - 1));
   };
 
-  const step = (d: number) => setZoom(Math.round(Math.min(1.2, Math.max(0.8, zoom + d)) * 10) / 10);
+  const step = (d: number) => setZoom(Math.round(Math.min(1.3, Math.max(0.8, zoom + d)) * 10) / 10);
 
   return (
     <aside className="flex shrink-0 items-center justify-between gap-3 lg:w-[46px] lg:flex-col lg:items-center lg:justify-between lg:pb-5">
@@ -239,14 +239,14 @@ function Rail({
         <div className="flex items-center gap-0.5 rounded-full bg-neutral-200/60 p-1 lg:flex-col">
           <button
             onClick={() => step(0.1)}
-            disabled={zoom >= 1.2}
+            disabled={zoom >= 1.3}
             aria-label="Zoom in"
             className="grid h-9 w-9 place-items-center rounded-full text-neutral-600 transition hover:bg-white hover:text-neutral-900 active:scale-90 disabled:opacity-30 disabled:hover:bg-transparent"
           >
             <Plus size={15} />
           </button>
           <button
-            onClick={() => setZoom(1)}
+            onClick={() => setZoom(1.1)}
             title="Reset zoom"
             aria-label="Reset zoom"
             className="h-5 min-w-[34px] rounded-full text-[10px] font-medium text-neutral-500 tabular-nums transition hover:bg-white hover:text-neutral-900"

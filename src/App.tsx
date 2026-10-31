@@ -43,7 +43,7 @@ export default function App() {
   const [tab, setTab] = useState<TabKey>("plan");
   const [view, setView] = useState<ViewMode>("path");
   const [filter, setFilter] = useState<StatFilter>("all");
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(1.1);
   const [courses, setCourses] = useState<Course[]>(initialCourses);
   const [playing, setPlaying] = useState(true);
   const [events, setEvents] = useState<EventItem[]>(initialEvents);
@@ -284,7 +284,7 @@ export default function App() {
     setInbox(inboxMessages);
     setFilter("all");
     setView("path");
-    setZoom(1);
+    setZoom(1.1);
     setPlaying(true);
     toast("Demo data restored", "♻️");
   };
